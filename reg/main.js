@@ -1,155 +1,163 @@
-let studName = "";
-let email = "";
-let phone = "";
-let branch = "";
-let imgLink = "";
-let gender = "";
-let BID = "";
+var form = document.querySelector("#userForm");
+const allUsersData = [];
 
-let male = document.getElementById("male");
-let female = document.getElementById("female");
-let other = document.getElementById("other");
+// ------------------function to reset the form------------------
+const resetForm = function () {
+  form.classList.remove("was-validated");
+  const name = document.getElementById("name");
+  name.value = "";
 
-let container = document.getElementById("listContainer");
-const monthNames = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
+  const email = document.getElementById("email");
+  email.value = "";
 
+  const website = document.getElementById("website");
+  website.value = "";
 
-male.checked = true;
+  const image = document.getElementById("image");
+  image.value = "";
 
-document.getElementById("clear").addEventListener("click", clear);
-
-function submit() {
-  studName = document.getElementById("name").value;
-  email = document.getElementById("email").value;
-  phone = document.getElementById("phone").value;
-  branch = document.getElementById("branch").value;
-  imgLink = document.getElementById("imgLink").value;
-
-  if (male.checked) {
-    gender = "Male";
-  } else if (female.checked) {
-    gender = "Female";
-  } else {
-    gender = "Other";
+  const genderEl = document.querySelectorAll('input[name="gender"]');
+  for (const rb of genderEl) {
+    rb.checked = false;
   }
 
-  if(!checkValidity()) return;
+  const skillEl = document.querySelectorAll('input[name="skill"]');
+  for (const rb of skillEl) {
+    rb.checked = false;
+  }
+};
 
-  let date = new Date();
-  let full_time = "Regitered on " + monthNames[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear() + " at " + date.getHours() + ":" + date.getMinutes();
-  BID = "BID" + date.getFullYear()+FormatDigit(date.getMonth())+FormatDigit(date.getDate())+FormatDigit(date.getHours())+FormatDigit(date.getMinutes())+FormatDigit(date.getSeconds())+FormatDigit(date.getMilliseconds());
+// --------------------function to get the data of the form----------------------
 
-  let ul = document.createElement("ul");
-  ul.className = "list";
-  let li_name = document.createElement("li");
-  let li_branch = document.createElement("li");
-  let li_gender = document.createElement("li");
-  let li_phone = document.createElement("li");
-  let li_email = document.createElement("li");
-  let li_img = document.createElement("li");
-  let li_time = document.createElement("li");
-  let li_btn = document.createElement("li");
+const getData = function () {
+  const name = document.getElementById("name").value;
+  const email = document.getElementById("email").value;
+  const website = document.getElementById("website").value;
+  const image = document.getElementById("image").value;
+  let gender;
+  let skills = [];
 
-  container.appendChild(ul);
-
-  li_name.innerHTML = studName;
-  li_branch.innerHTML = branch;
-  li_gender.innerHTML = gender;
-  li_phone.innerHTML = phone;
-  li_email.innerHTML = email;
-  li_time.innerHTML = full_time;
-
-  ul.appendChild(li_name);
-  ul.appendChild(li_branch);
-  ul.appendChild(li_gender);
-  ul.appendChild(li_phone);
-  ul.appendChild(li_email);
-
-  let img = document.createElement("img");
-  img.src = imgLink;
-  img.alt = "Image Not given!";
-  li_img.appendChild(img);
-  
-  ul.appendChild(li_img);
-  ul.appendChild(li_time);
-
-  let btn = document.createElement("button");
-  btn.innerHTML = "Remove";
-  btn.id = BID;
-  btn.className = "removebtn"
-  li_btn.appendChild(btn); 
-  ul.appendChild(li_btn);
-
-  saveData();
-  clear();
-  getID();
-}
-
-function FormatDigit(n) {
-  if (n < 10) return "0"+n;
-  if (n < 100) return "00"+n;
-  return n;
-}
-
-function checkValidity() {
-  if (studName == "" || email == "" || phone == "" || branch == "" || imgLink == "" || gender == "") {
-    alert("Please fill all the data!");
-    
-    switch("") {
-        case studName: 
-                document.getElementById("name").focus();
-                break;
-        
-                case email: 
-                document.getElementById("email").focus();
-                break;
-
-                case phone: 
-                document.getElementById("phone").focus();
-                break;
-
-                case branch: 
-                document.getElementById("branch").focus();
-                break;
-
-                case imgLink: 
-                document.getElementById("imgLink").focus();
-                break;
+  const genderEl = document.querySelectorAll('input[name="gender"]');
+  for (const rb of genderEl) {
+    if (rb.checked) {
+      gender = rb.value;
+      break;
     }
-    return false;
   }
-  return true;
+
+  const skillEl = document.querySelectorAll('input[name="skill"]');
+  for (const rb of skillEl) {
+    if (rb.checked) {
+      skills.push(rb.value);
+    }
+  }
+  return { name, email, website, image, gender, skills };
+};
+
+//-----------------------adding event listner to the "enroll student" button with type submit to submit the form
+
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+  if (form.checkValidity()) {
+    const data = getData();
+    allUsersData.push(data);
+    printResult(data);
+    resetForm();
+  } else {
+    form.classList.add("was-validated");
+  }
+  removeSpan();
+});
+
+// --------------function to remove the span tag ("fill the form to enroll the students")
+
+function removeSpan() {
+  var span = document.getElementById("span");
+  if (span) {
+    span.remove();
+  }
 }
 
-function clear() {
-  BID = "";
-  male.checked = true;
-  document.getElementById("name").value = "";
-  document.getElementById("email").value = "";
-  document.getElementById("phone").value = "";
-  document.getElementById("branch").value = "";
-  document.getElementById("imgLink").value = "";
-}
+// ------------------function to print the form data in the right side of div by genrating html elments inside the div.
 
-function getID() {
-  Array.from(document.getElementsByClassName("removebtn")).forEach(element => {
-      document.getElementById(element.id).addEventListener("click", function(e) {
-        container.removeChild(this.parentNode.parentNode);
-        saveData();
-      }, false);
+function printResult(data) {
+  const resultEl = document.getElementById("enrolled-students");
+  let sectionHeading = null;
+  if (allUsersData.length == 1) {
+    sectionHeading = document.createElement("div");
+    const description = document.createElement("p");
+    description.innerHTML = "Description";
+    description.className = "description";
+
+    const image = document.createElement("p");
+    image.innerHTML = "Image";
+    image.className = "Image";
+
+    sectionHeading.className = "sectionHeading";
+    sectionHeading.append(description, image);
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "wrapper";
+  wrapper.addEventListener("click", function (e) {
+    console.log(e.target.className);
+    if (e.target.className.includes("userDeleteBtn")) {
+      console.log("aaadfasdfasdf");
+      e.currentTarget.remove();
+    }
   });
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.innerHTML = "+";
+  deleteBtn.className = "userDeleteBtn";
+
+  const textInfoContainer = document.createElement("div");
+  textInfoContainer.className = "textInfoContainer";
+
+  const imageContainer = document.createElement("div");
+  imageContainer.className = "imageContainer";
+
+  const imageHyperlink = document.createElement("a");
+  imageHyperlink.href = data.image;
+  imageHyperlink.target = "_blank";
+
+  let name = document.createElement("p");
+  name.className = "infoText userName";
+  name.innerHTML = data.name;
+
+  let gender = document.createElement("p");
+  gender.className = "infoText gender";
+  gender.innerHTML = data.gender;
+
+  let email = document.createElement("p");
+  email.className = "infoText email";
+  email.innerHTML = data.email;
+
+  let website = document.createElement("a");
+  website.className = "infoText website";
+  website.innerHTML = data.website;
+  website.href = data.website;
+  website.target = "_blank";
+
+  let skills = document.createElement("p");
+  skills.className = "infoText skills";
+  skills.innerHTML = data.skills.join(", ");
+
+  let userImage = document.createElement("img");
+  userImage.className = "userImage";
+  userImage.src = data.image;
+
+  textInfoContainer.append(name, gender, email, website, skills);
+  imageHyperlink.appendChild(userImage);
+  imageContainer.appendChild(imageHyperlink);
+
+  wrapper.append(textInfoContainer, imageContainer, deleteBtn);
+
+  if (sectionHeading == null) {
+    resultEl.append(wrapper);
+  } else {
+    resultEl.append(sectionHeading, wrapper);
+  }
 }
 
-function saveData() {
-  window.localStorage.setItem("registration", container.innerHTML);
-}
-
-saveData();
-let content = window.localStorage.getItem("registration");
-if (content.trim()+"" == "") {
-  container.innerHTML = '<div class="title">Registered Student List</div>';
-}
-container.innerHTML = window.localStorage.getItem("registration");
-getID();
+// The end---------
